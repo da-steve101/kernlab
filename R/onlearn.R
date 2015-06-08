@@ -172,6 +172,9 @@ function(object, x)
     if(is.vector(x))
       x<- matrix(x,1)
 
+    if (is.data.frame(x))
+        x <- as.matrix(x)
+
     d <- dim(xmatrix(object))[2]
           
     if(type(object)=="novelty")
