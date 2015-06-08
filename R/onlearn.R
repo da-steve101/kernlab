@@ -7,11 +7,6 @@ setGeneric("onlearn",function(obj, x, y = NULL, nu = 0.2, lambda = 0.99, eta = 0
 setMethod("onlearn", signature(obj = "onlearn"),
           function(obj , x, y = NULL,  nu = 0.2, lambda = 0.99, eta = 0.001)
           {
-            if(onstart(obj) == 1 && onstop(obj) < buffer(obj))
-              buffernotfull  <- TRUE
-            else
-              buffernotfull <- FALSE
-
             if(is.vector(x))
               x <- matrix(x,,length(x))  
             d <- dim(x)[2]
@@ -34,8 +29,12 @@ setMethod("onlearn", signature(obj = "onlearn"),
             }
             for (i in 1:dim(x)[1])
               {
-                xt <- x[i,,drop=FALSE]
-                yt <- y[i]
+            xt <- x[i,,drop=FALSE]
+            yt <- y[i]
+            if(onstart(obj) == 1 && onstop(obj) < buffer(obj))
+              buffernotfull <- TRUE
+            else
+              buffernotfull <- FALSE
             if(type(obj)=="novelty")
               {
                 phi <- fit(obj)
@@ -183,7 +182,7 @@ function(object, x)
           res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object)[1:onstop(object),],ncol= d),
                                  matrix(alpha(object)[1:onstop(object)],ncol=1)) - rho(object))
         else
-          res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object)),ncol=1) - rho(object))
+          res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object),ncol=1)) - rho(object))
       }
 
     if(type(object)=="classification")
@@ -192,7 +191,7 @@ function(object, x)
           res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object)[1:onstop(object),],ncol=d),
                                  matrix(alpha(object)[1:onstop(object)],ncol=1)))
         else
-          res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object)),ncol=1))
+          res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object),ncol=1)))
        
       }
 
@@ -202,7 +201,7 @@ function(object, x)
           res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object)[1:onstop(object),],ncol=d),
                                  matrix(alpha(object)[1:onstop(object)],ncol=1)))
         else
-          res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object)),ncol=1))
+          res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object),ncol=1)))
       }
 
     return(res)

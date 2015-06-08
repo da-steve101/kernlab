@@ -7,11 +7,6 @@ setGeneric("olk",function(obj, x, y = NULL, C = 0.5, r = 1e-4, epsilon = 0.005) 
 setMethod("olk", signature(obj = "olk"),
           function(obj , x, y = NULL, C = 0.5, r = 1e-4, epsilon = 0.005)
 {
-    if(olkstart(obj) == 1 && olkstop(obj) < bufferolk(obj))
-        buffernotfull  <- TRUE
-    else
-        buffernotfull <- FALSE
-
     if(is.vector(x))
         x <- matrix(x,,length(x))
     d <- dim(x)[2]
@@ -36,11 +31,15 @@ setMethod("olk", signature(obj = "olk"),
     }
     for (i in 1:dim(x)[1])
     {
-        # for all available examples
-        xt <- x[i,,drop=FALSE]
-        yt <- y[i]
-        ft <- fitolk(obj)
-        if(type(obj)=="novelty")
+       # for all available examples
+       xt <- x[i,,drop=FALSE]
+       yt <- y[i]
+       ft <- fitolk(obj)
+       if(olkstart(obj) == 1 && olkstop(obj) < bufferolk(obj))
+         buffernotfull <- TRUE
+       else
+         buffernotfull <- FALSE
+       if(type(obj)=="novelty")
         {
             alphaNew <- 1 + r - ft
             if(alphaNew > 0)
@@ -75,8 +74,8 @@ setMethod("olk", signature(obj = "olk"),
                 if(buffernotfull)
                     olkstop(obj) <- olkstop(obj) + 1
                 else{
-                    olkstop(obj) <- olkstop(obj)%%bufferolk(obj) + 1
-                    olkstart(obj) <- olkstart(obj)%%bufferolk(obj) +1
+                    olkstop(obj)  <- olkstop(obj)%%bufferolk(obj) + 1
+                    olkstart(obj) <- olkstart(obj)%%bufferolk(obj) + 1
                 }
                 alpha(obj)[olkstop(obj)] <- yt*alphaNew/(1+r)
                 xmatrix(obj)[olkstop(obj),] <- xt
@@ -108,8 +107,8 @@ setMethod("olk", signature(obj = "olk"),
                 if(buffernotfull)
                     olkstop(obj) <- olkstop(obj) + 1
                 else{
-                    olkstop(obj) <- olkstop(obj)%%bufferolk(obj) + 1
-                    olkstart(obj) <- olkstart(obj)%% bufferolk(obj) +1
+                    olkstop(obj)  <- olkstop(obj)%%bufferolk(obj) + 1
+                    olkstart(obj) <- olkstart(obj)%%bufferolk(obj) +1
                 }
                 alpha(obj)[olkstop(obj)] <- (alpha1 - alpha2)/(1+r)
                 xmatrix(obj)[olkstop(obj),] <- xt
@@ -181,7 +180,7 @@ setMethod("predict",signature(object="olk"),
             res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object)[1:olkstop(object),],ncol= d),
                                    matrix(alpha(object)[1:olkstop(object)],ncol=1)) - 1)
         else
-            res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object)),ncol=1) - 1)
+            res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object),ncol=1)) - 1)
     }
 
     if(type(object)=="classification")
@@ -190,7 +189,7 @@ setMethod("predict",signature(object="olk"),
             res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object)[1:olkstop(object),],ncol=d),
                                    matrix(alpha(object)[1:olkstop(object)],ncol=1)))
         else
-            res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object)),ncol=1))
+            res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object),ncol=1)))
     }
 
     if(type(object)=="regression")
@@ -199,7 +198,7 @@ setMethod("predict",signature(object="olk"),
             res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object)[1:olkstop(object),],ncol=d),
                                    matrix(alpha(object)[1:olkstop(object)],ncol=1)))
         else
-            res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object)),ncol=1))
+            res <- drop(kernelMult(kernelf(object), x, matrix(xmatrix(object),ncol=d), matrix(alpha(object),ncol=1)))
     }
 
     return(res)
