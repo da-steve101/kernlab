@@ -17,8 +17,8 @@ setMethod("onlearn", signature(obj = "onlearn"),
                     y <- (2*(y - 1) - 1)
             }
             else {
-                if ((type(obj) != "classification") && any(as.integer (y) != y))
-                    stop ("dependent variable has to be of factor or integer type for classification mode.")
+                if ((type(obj) != "regression") && any(as.integer (y) != y))
+                    stop ("dependent variable has to be of factor or integer type for classification or novelty detection mode.")
                 if (type(obj) != "regression")
                     lev(obj) <- sort(unique (y))
             }
@@ -36,7 +36,9 @@ setMethod("onlearn", signature(obj = "onlearn"),
             else
               buffernotfull <- FALSE
             if(type(obj)=="novelty")
-              {
+              { 
+	        if (length(unique(y)) <= 2 && yt != 1) # skip all not in class 1
+                    next
                 phi <- fit(obj)
 
                 alpha(obj) <- (1 - eta) * alpha(obj)
@@ -54,7 +56,7 @@ setMethod("onlearn", signature(obj = "onlearn"),
                     rho(obj) <- rho(obj) - eta*(1 - nu)
                   }
                 else
-                  rho(obj) <- rho(obj) - eta*nu  # sign error in Online Learning with Kernels
+                  rho(obj) <- rho(obj) + eta*nu  # sign error in Online Learning with Kernels
 
                 if(onstart(obj) == 1 && onstop(obj) < buffer(obj))
                   fit(obj) <- drop(kernelMult(kernelf(obj), xt, matrix(xmatrix(obj)[1:onstop(obj),],ncol=d),
@@ -137,8 +139,7 @@ setMethod("inlearn", signature(d = "numeric"),
                 kernel <- do.call(kernel, kpar)
               }
             if(!is(kernel,"kernel")) stop("kernel must inherit from class `kernel'")
-
-            type(obj) <- match.arg(type,c("novelty","classification","regression"))
+	    type(obj) <- match.arg(type,c("novelty","classification","regression"))
             xmatrix(obj) <- matrix(0,buffersize,d)
             kernelf(obj) <- kernel
             onstart(obj) <- 1
